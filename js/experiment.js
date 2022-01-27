@@ -161,52 +161,126 @@ var displayShapes = function() {
   // In my example, it means deciding on its size (large or small) and its color (light or dark)
   var randomNumber1 = Math.random();
   var randomNumber2 = Math.random();
-  var targetSize, targetColor;
+  let targetStroke, targetOrientation, targetSize;
+
+  //targetStroke
   if(randomNumber1 > 0.5) {
-    targetSize = 25; // target is large
+    targetStroke = "black"; // yes stroke
   } else {
-    targetSize = 15; // target is small
+    targetStroke = "none"; // no stroke
   }
+
+  //target size
   if(randomNumber2 > 0.5) {
-    targetColor = "DarkGray"; // target is dark gray
+    targetSize =15; // target is in normal orientation
   } else {
-    targetColor = "LightGray"; // target is light gray
+    targetSize =25; // target is 45 degree rotated
   }
+
+
+/*   //TargetOrientation
+  if(randomNumber2 > 0.5) {
+    targetOrientation = "rotate(90)"; // target is in normal orientation
+  } else {
+    targetOrientation = "rotate(45)"; // target is 45 degree rotated
+  } */
 
   // 2. Set the visual appearance of all other objects now that the target appearance is decided
   // Here, we implement the case VV = "Size" so all other objects are large (resp. small) if target is small (resp. large) but have the same color as target.
+  
   var objectsAppearance = [];
+  
+    //if VV= VV1 Target size
+    for (var i = 0; i < objectCount-1; i++) {
+      if(targetStroke == "none") {
+        objectsAppearance.push({
+          stroke: "black",
+          size: targetSize
+        });
+      } else {
+        objectsAppearance.push({
+          stroke: "none",
+          size: targetSize
+        });
+      }
+    }
+
+
+/*   //if VV= VV1 Target stroke
   for (var i = 0; i < objectCount-1; i++) {
-    if(targetSize == 25) {
+    if(targetStroke == "none") {
       objectsAppearance.push({
-        size: 15,
-        color: targetColor
+        stroke: "black",
+        orientation: targetOrientation
       });
     } else {
       objectsAppearance.push({
-        size: 25,
-        color: targetColor
+        stroke: "none",
+        orientation: targetOrientation
       });
     }
-  }
+  } */
+
+/*   //if VV= VV2 Target Orientation
+  for (var i = 0; i < objectCount-1; i++) {
+    if(targetOrientation== "none") {
+      objectsAppearance.push({
+        stroke: targetStroke,
+        orientation: "rotate(45)"
+      });
+    } else {
+      objectsAppearance.push({
+        stroke: targetStroke,
+        orientation: "none"
+      });
+    }
+  } */
+  
+  //if VV1 VV2 Target Orientation and target orientation is different
+
+
 
   // 3. Shuffle the list of objects (useful when there are variations regarding both visual variable) and add the target at a specific index
   shuffle(objectsAppearance);
   // draw a random index for the target
   ctx.targetIndex = Math.floor(Math.random()*objectCount);
   // and insert it at this specific index
-  objectsAppearance.splice(ctx.targetIndex, 0, {size:targetSize, color:targetColor});
+  objectsAppearance.splice(ctx.targetIndex, 0, {stroke: targetStroke, size : targetSize});
 
   // 4. We create actual SVG shapes and lay them out as a grid
   // compute coordinates for laying out objects as a grid
   var gridCoords = gridCoordinates(objectCount, 60);
+
   // display all objects by adding actual SVG shapes
   for (var i = 0; i < objectCount; i++) {
-      group.append("circle")
+
+/*       if (i == targetIndex)
+      {
+      group.append("rect")
       .attr("cx", gridCoords[i].x)
       .attr("cy", gridCoords[i].y)
+      .attr("width", 56)
+      .attr("height", 56)
+      .attr("stroke", objectsAppearance[i].targetStroke)
+      .attr("transform", objectsAppearance[i].targetOrientation)
+      .attr("fill", "white");//just in case
+      } */
+      
+      group.append("circle")
+      //x,y if the svg shape is rect
+      //if rect, coordinates= 150, x,y-90
+      .attr("cx", gridCoords[i].x-28)
+      .attr("cy", gridCoords[i].y-28)
+      .attr("fill", "lightgray")
+      //.attr("width", 56)
+      //.attr("height", 56)
+      .attr("stroke", objectsAppearance[i].stroke)
       .attr("r", objectsAppearance[i].size)
-      .attr("fill", objectsAppearance[i].color);
+      
+      console.log(i+ '- stroke: ' + objectsAppearance[i].stroke);
+      //console.log( 'transform: ' + objectsAppearance[i].orientation);
+      console.log( 'gridcoords: ' + gridCoords[i].x+' , '+ gridCoords[i].y );
+
   }
 
 }
@@ -237,12 +311,13 @@ var displayPlaceholders = function() {
         .attr("y", gridCoords[i].y-28)
         .attr("width", 56)
         .attr("height", 56)
-        .attr("fill", "Gray");
+        .attr("fill", "gray");
 
 
     placeholder.on("click",
         function() {
-          // TODO
+            d3.select("#placeholders").remove();
+            displayInstructions();
         }
       );
 
@@ -256,6 +331,14 @@ var keyListener = function(event) {
     d3.select("#instructions").remove();
     displayShapes();
   }
+
+  if(ctx.state == state.SHAPES && event.code == "Space") {
+    d3.select("#shapes").remove();
+    displayPlaceholders();
+  }
+
+
+
 
 
 }
