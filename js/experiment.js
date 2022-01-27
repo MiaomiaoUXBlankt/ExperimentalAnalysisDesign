@@ -42,7 +42,7 @@ var ctx = {
 
 var loadData = function(svgEl){
   // d3.csv parses a csv file...
-  d3.csv("experiment_touchstone"+touchstone+".csv").then(function(data){
+  d3.csv("experiment"+touchstone+".csv").then(function(data){
     // ... and turns it into a 2-dimensional array where each line is an array indexed by the column headers
     // for example, data[2]["OC"] returns the value of OC in the 3rd line
     ctx.trials = data;
@@ -150,23 +150,6 @@ var displayShapes = function() {
   }
   console.log("display shapes for condition "+oc+","+visualVariable);
 
-<svg width="222" height="222" viewBox="0 0 222 222" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g filter="url(#filter0_i_1222_54846)">
-<rect width="222" height="222" rx="111" fill="#B1FFFA"/>
-</g>
-<defs>
-<filter id="filter0_i_1222_54846" x="0" y="0" width="236" height="236" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-<feFlood flood-opacity="0" result="BackgroundImageFix"/>
-<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
-<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
-<feOffset dx="15" dy="21"/>
-<feGaussianBlur stdDeviation="7"/>
-<feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1"/>
-<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>
-<feBlend mode="normal" in2="shape" result="effect1_innerShadow_1222_54846"/>
-</filter>
-</defs>
-</svg>
 
 
   var svgElement = d3.select("svg");
