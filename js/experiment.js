@@ -109,8 +109,23 @@ var startExperiment = function(event) {
 
 var nextTrial = function() {
   ctx.cpt++;
-  ctx.trials[ctx.cpt]["ErrorCount"] = 0;
-  displayInstructions();
+  if ( ctx.trials[ctx.cpt]["Participant"]==ctx.participant)
+  {
+    ctx.trials[ctx.cpt]["ErrorCount"] = 0;
+    displayInstructions();
+  }
+  else
+  {
+    ctx.state =NONE;
+    
+    d3.select("#End")
+    .append("p")
+    .html("Your experiment is done. Thank you for the participation please indicate the researcher that you finished.");
+
+  }
+
+  console.log("ctx.participant: " + ctx.participant);
+  
 }
 
 var displayInstructions = function() {
@@ -361,27 +376,6 @@ var displayPlaceholders = function() {
           
         }
 
-/*     placeholder.on("click",
-        function() {
-            console.log("holderindex : "+ holderIndex[i]);
-            console.log("ctx.targetIndex : "+ ctx.targetIndex);
-            
-            d3.select("#placeholders").remove();
-
-            if (holderIndex[i]== ctx.targetIndex)
-              nextTrial();
-
-            else {
-              ctx.trials[ctx.cpt]["ErrorCount"]+=1;
-              displayShapes();
-              startTimer = Date.now();
-
-              console.log("ErrorCount: " + ctx.trials[ctx.cpt]["ErrorCount"]);
-
-            }
-            
-        }
-      ); */
 
   }
 }
