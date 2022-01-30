@@ -109,6 +109,8 @@ var startExperiment = function(event) {
 
 var nextTrial = function() {
   ctx.cpt++;
+  console.log("ctx.cpt: "+ctx.cpt);
+
   if ( ctx.trials[ctx.cpt]["Participant"]==ctx.participant)
   {
     ctx.trials[ctx.cpt]["ErrorCount"] = 0;
@@ -116,12 +118,7 @@ var nextTrial = function() {
   }
   else
   {
-    ctx.state =NONE;
-    
-    d3.select("#End")
-    .append("p")
-    .html("Your experiment is done. Thank you for the participation please indicate the researcher that you finished.");
-
+    ctx.state =state.NONE;
   }
 
   console.log("ctx.participant: " + ctx.participant);
