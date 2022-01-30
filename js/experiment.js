@@ -33,7 +33,8 @@ var ctx = {
   loggedTrials:
     touchstone == 1 ?
     [["Participant","Practice","Block","Trial","VV","OC","visualSearchTime","ErrorCount"]] :
-    [["DesignName","ParticipantID","TrialID","Block1","Trial","VV","OC","visualSearchTime","ErrorCount"]]
+    [["DesignName", "ParticipantID", "TrialID", "Block1", "Trial", "VV", "OC", "visualSearchTime", "ErrorCount"]]
+  
 };
 
 /****************************************/
@@ -60,6 +61,7 @@ var loadData = function(svgEl){
         console.log("Here is the options",options);
       }
     }
+    console.log("Here is the participant",participant);
 
     var select = d3.select("#participantSel")
     select.selectAll("option")
@@ -70,7 +72,7 @@ var loadData = function(svgEl){
 
     setParticipant(options[0]);
 
-  }).catch(function(error){console.log(error)});
+  }).catch(function(error){console.log("Here is the error",error)});
 };
 
 /****************************************/
@@ -110,6 +112,9 @@ var startExperiment = function(event) {
 
 var nextTrial = function() {
   ctx.cpt++;
+  console.log("Here is the New ctx", ctx);
+  console.log("The Current participant", ctx.trials[ctx.cpt]["Participant"]);
+  console.log("The Current Trial", ctx.trials[ctx.cpt]["Trial"]);
   displayInstructions();
 }
 
@@ -160,28 +165,75 @@ var displayShapes = function() {
   .attr("id", "shapes")
   .attr("transform", "translate(100,100)");
   console.log("Here is group", group);
+  var randomNum = Math.random();
+  var randomNum2 = Math.random();
+  console.log("The randomNum", randomNum);
+  var objectAppearance = [];
 
+  var targetOutline, targetShape, targetStroke;
+  if (randomNum2 > 0.5) {
+    targetOutline = "black";
+  } else {
+    targetOutline ="#fff"
+  }
+
+  if (randomNum > 0.5) {
+    targetShape = "rect";
+  } else {
+    targetShape = "polygon";
+  }
+  if (Math.random() > 0.5) {
+    targetStroke = "black";
+  } else {
+    targetStroke ="#fff"
+  }
+
+  console.log("The targetStroke", targetOutline);
+  console.log("The targetShape", targetShape);
+ 
+
+  for (var i = 0; i < objectCount - 1; i++){
+    if (targetShape == "polygon") {
+      objectAppearance.push({
+        color: "#5cceee",
+        stroke: targetStroke,
+        shape: "rect"
+      });
+    }else{
+      objectAppearance.push({
+        color: "#5cceee",
+        stroke: targetStroke,
+        shape: "polygon"
+      });
+    }
+    
+    
+  }
+
+  console.log("This is objectappearance", objectAppearance);
+  shuffle(objectAppearance);
+  console.log("This is objectappearance after shuffle", objectAppearance);
   
   ctx.targetIndex = Math.floor(Math.random() * objectCount);
+  objectAppearance.splice(ctx.targetIndex, 0, { color: "#5cceee", stroke: targetOutline, shape:targetShape});
+  
   console.log("Here is ctx.targetIndex", ctx.targetIndex);
   var gridCoords = gridCoordinates(objectCount, 60);
   for (var i = 0; i < objectCount; i++){
-    if (i == ctx.targetIndex) {
+    if(objectAppearance[i].shape == "rect") {
+        group.append("rect")
+          .attr("x", gridCoords[i].x)
+          .attr("y", gridCoords[i].y)
+          .attr("width", 56)
+          .attr("height", 56)
+          .attr("fill", objectAppearance[i].color)
+          .attr("stroke", objectAppearance[i].stroke);
+    } else {
       var points = [gridCoords[i].x, gridCoords[i].y, gridCoords[i].x + 56, gridCoords[i].y + 56, gridCoords[i].x + 56, gridCoords[i].y];
       group.append("polygon")
-        // .attr("x", gridCoords[i].x)
-        // .attr("y", gridCoords[i].y)
         .attr("points", points)
-        .attr("fill", "#5cceee");
-      
-    } else {
-      group.append("rect")
-        .attr("x", gridCoords[i].x)
-        .attr("y", gridCoords[i].y)
-        .attr("width", 56)
-        .attr("height", 56)
-        .attr("fill", "#5cceee");
-  
+        .attr("fill", objectAppearance[i].color)
+        .attr("stroke", objectAppearance[i].stroke);
     }
     
   }
@@ -235,15 +287,25 @@ var displayPlaceholders = function() {
 
 var keyListener = function(event) {
   event.preventDefault();
+  
 
   if(ctx.state == state.INSTRUCTIONS && event.code == "Enter") {
     d3.select("#instructions").remove();
-    
     displayShapes();
   }
 
   //Press Space bar display the playHolder
   if (ctx.state == state.SHAPES && event.code == "Space") {
+    ctx.loggedTrials.push(
+      ["Preattention-experiment",
+      ctx.participant,
+      ctx.startBlock,
+      ctx.startTrial,
+      ctx.trials[ctx.cpt]["VV"],
+      ctx.trials[ctx.cpt]["OC"],
+      Date.now(),
+      1]
+    );
     displayPlaceholders();
   }
 
@@ -254,7 +316,8 @@ var keyListener = function(event) {
 var downloadLogs = function(event) {
   event.preventDefault();
   var csvContent = "data:text/csv;charset=utf-8,";
-  console.log("logged lines count: "+ctx.loggedTrials.length);
+  console.log("logged lines count: " + ctx.loggedTrials.length);
+  
   ctx.loggedTrials.forEach(function(rowArray){
    var row = rowArray.join(",");
    csvContent += row + "\r\n";
@@ -374,6 +437,7 @@ var setParticipant = function(participantID) {
 function onchangeParticipant() {
   selectValue = d3.select("#participantSel").property("value");
   setParticipant(selectValue);
+  
 };
 
 function onchangeBlock() {
