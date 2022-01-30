@@ -45,7 +45,9 @@ var loadData = function(svgEl){
   d3.csv("experiment"+touchstone+".csv").then(function(data){
     // ... and turns it into a 2-dimensional array where each line is an array indexed by the column headers
     // for example, data[2]["OC"] returns the value of OC in the 3rd line
+    console.log("Here is the d3",d3);
     ctx.trials = data;
+    console.log("Here is the ctx",ctx);
     // all trials for the whole experiment are stored in global variable ctx.trials
 
     var participant = "";
@@ -55,6 +57,7 @@ var loadData = function(svgEl){
       if(!(ctx.trials[i][ctx.participantIndex] === participant)) {
         participant = ctx.trials[i][ctx.participantIndex];
         options.push(participant);
+        console.log("Here is the options",options);
       }
     }
 
@@ -120,15 +123,15 @@ var displayInstructions = function() {
 
   d3.select("#instructions")
     .append("p")
-    .html("Multiple shapes will get displayed.<br> Only <b>one shape</b> is different from all other shapes.");
+    .html("There will be two different shapes to be recognized.<br> Only <b>one shape</b> Your mission is to find the polygon shape from the spot.");
 
   d3.select("#instructions")
     .append("p")
-    .html("1. Spot it as fast as possible and press <code>Space</code> bar;");
+    .html("1. Spot it as fast as possible and press <code>Space</code> bar to proceed.;");
 
   d3.select("#instructions")
     .append("p")
-    .html("2. Click on the placeholder over that shape.");
+    .html("2. Click on the placeholder over that shape to move on next trial.");
 
   d3.select("#instructions")
     .append("p")
@@ -137,10 +140,10 @@ var displayInstructions = function() {
 }
 
 var displayShapes = function() {
-  ctx.state = state.SHAPES;
-
+  ctx.state = state.SHAPES; 
   var visualVariable = ctx.trials[ctx.cpt]["VV"];
   var oc = ctx.trials[ctx.cpt]["OC"];
+  //set the Object Counts in three levels
   if(oc === "Small") {
     objectCount = 9;
   } else if(oc === "Medium") {
@@ -156,134 +159,36 @@ var displayShapes = function() {
   var group = svgElement.append("g")
   .attr("id", "shapes")
   .attr("transform", "translate(100,100)");
+  console.log("Here is group", group);
 
-  // 1. Decide on the visual appearance of the target
-  // In my example, it means deciding on its size (large or small) and its color (light or dark)
-  var randomNumber1 = Math.random();
-  var randomNumber2 = Math.random();
-  let targetStroke, targetOrientation, targetSize;
-
-  //targetStroke
-  if(randomNumber1 > 0.5) {
-    targetStroke = "black"; // yes stroke
-  } else {
-    targetStroke = "none"; // no stroke
-  }
-
-  //target size
-  if(randomNumber2 > 0.5) {
-    targetSize =15; // target is in normal orientation
-  } else {
-    targetSize =25; // target is 45 degree rotated
-  }
-
-
-/*   //TargetOrientation
-  if(randomNumber2 > 0.5) {
-    targetOrientation = "rotate(90)"; // target is in normal orientation
-  } else {
-    targetOrientation = "rotate(45)"; // target is 45 degree rotated
-  } */
-
-  // 2. Set the visual appearance of all other objects now that the target appearance is decided
-  // Here, we implement the case VV = "Size" so all other objects are large (resp. small) if target is small (resp. large) but have the same color as target.
   
-  var objectsAppearance = [];
-  
-    //if VV= VV1 Target size
-    for (var i = 0; i < objectCount-1; i++) {
-      if(targetStroke == "none") {
-        objectsAppearance.push({
-          stroke: "black",
-          size: targetSize
-        });
-      } else {
-        objectsAppearance.push({
-          stroke: "none",
-          size: targetSize
-        });
-      }
-    }
-
-
-/*   //if VV= VV1 Target stroke
-  for (var i = 0; i < objectCount-1; i++) {
-    if(targetStroke == "none") {
-      objectsAppearance.push({
-        stroke: "black",
-        orientation: targetOrientation
-      });
-    } else {
-      objectsAppearance.push({
-        stroke: "none",
-        orientation: targetOrientation
-      });
-    }
-  } */
-
-/*   //if VV= VV2 Target Orientation
-  for (var i = 0; i < objectCount-1; i++) {
-    if(targetOrientation== "none") {
-      objectsAppearance.push({
-        stroke: targetStroke,
-        orientation: "rotate(45)"
-      });
-    } else {
-      objectsAppearance.push({
-        stroke: targetStroke,
-        orientation: "none"
-      });
-    }
-  } */
-  
-  //if VV1 VV2 Target Orientation and target orientation is different
-
-
-
-  // 3. Shuffle the list of objects (useful when there are variations regarding both visual variable) and add the target at a specific index
-  shuffle(objectsAppearance);
-  // draw a random index for the target
-  ctx.targetIndex = Math.floor(Math.random()*objectCount);
-  // and insert it at this specific index
-  objectsAppearance.splice(ctx.targetIndex, 0, {stroke: targetStroke, size : targetSize});
-
-  // 4. We create actual SVG shapes and lay them out as a grid
-  // compute coordinates for laying out objects as a grid
+  ctx.targetIndex = Math.floor(Math.random() * objectCount);
+  console.log("Here is ctx.targetIndex", ctx.targetIndex);
   var gridCoords = gridCoordinates(objectCount, 60);
-
-  // display all objects by adding actual SVG shapes
-  for (var i = 0; i < objectCount; i++) {
-
-/*       if (i == targetIndex)
-      {
+  for (var i = 0; i < objectCount; i++){
+    if (i == ctx.targetIndex) {
+      var points = [gridCoords[i].x, gridCoords[i].y, gridCoords[i].x + 56, gridCoords[i].y + 56, gridCoords[i].x + 56, gridCoords[i].y];
+      group.append("polygon")
+        // .attr("x", gridCoords[i].x)
+        // .attr("y", gridCoords[i].y)
+        .attr("points", points)
+        .attr("fill", "#5cceee");
+      
+    } else {
       group.append("rect")
-      .attr("cx", gridCoords[i].x)
-      .attr("cy", gridCoords[i].y)
-      .attr("width", 56)
-      .attr("height", 56)
-      .attr("stroke", objectsAppearance[i].targetStroke)
-      .attr("transform", objectsAppearance[i].targetOrientation)
-      .attr("fill", "white");//just in case
-      } */
-      
-      group.append("circle")
-      //x,y if the svg shape is rect
-      //if rect, coordinates= 150, x,y-90
-      .attr("cx", gridCoords[i].x-28)
-      .attr("cy", gridCoords[i].y-28)
-      .attr("fill", "lightgray")
-      //.attr("width", 56)
-      //.attr("height", 56)
-      .attr("stroke", objectsAppearance[i].stroke)
-      .attr("r", objectsAppearance[i].size)
-      
-      console.log(i+ '- stroke: ' + objectsAppearance[i].stroke);
-      //console.log( 'transform: ' + objectsAppearance[i].orientation);
-      console.log( 'gridcoords: ' + gridCoords[i].x+' , '+ gridCoords[i].y );
-
+        .attr("x", gridCoords[i].x)
+        .attr("y", gridCoords[i].y)
+        .attr("width", 56)
+        .attr("height", 56)
+        .attr("fill", "#5cceee");
+  
+    }
+    
   }
 
 }
+
+
 
 var displayPlaceholders = function() {
   ctx.state = state.PLACEHOLDERS;
@@ -307,17 +212,21 @@ var displayPlaceholders = function() {
   var gridCoords = gridCoordinates(objectCount, 60);
   for (var i = 0; i < objectCount; i++) {
     var placeholder = group.append("rect")
-        .attr("x", gridCoords[i].x-28)
-        .attr("y", gridCoords[i].y-28)
+        .attr("x", gridCoords[i].x)
+        .attr("y", gridCoords[i].y)
         .attr("width", 56)
         .attr("height", 56)
-        .attr("fill", "gray");
+        .attr("fill", "Gray");
 
 
     placeholder.on("click",
         function() {
-            d3.select("#placeholders").remove();
-            displayInstructions();
+          // TODO remove playholder and progress to next trail
+          // I realised that we also need to remove the #shapes
+          d3.select("#placeholders").remove();
+          d3.select("#shapes").remove();
+          nextTrial();
+
         }
       );
 
@@ -329,19 +238,18 @@ var keyListener = function(event) {
 
   if(ctx.state == state.INSTRUCTIONS && event.code == "Enter") {
     d3.select("#instructions").remove();
+    
     displayShapes();
   }
 
-  if(ctx.state == state.SHAPES && event.code == "Space") {
-    d3.select("#shapes").remove();
+  //Press Space bar display the playHolder
+  if (ctx.state == state.SHAPES && event.code == "Space") {
     displayPlaceholders();
   }
 
 
-
-
-
 }
+
 
 var downloadLogs = function(event) {
   event.preventDefault();
