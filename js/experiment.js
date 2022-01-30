@@ -148,9 +148,7 @@ var displayShapes = function() {
   } else {
     objectCount = 49;
   }
-  console.log("display shapes for condition "+oc+","+visualVariable);
-
-
+  console.log(ctx.cpt+":"+ "display shapes for condition "+oc+","+visualVariable);
 
   var svgElement = d3.select("svg");
   var group = svgElement.append("g")
@@ -166,17 +164,21 @@ var displayShapes = function() {
   //targetStroke
   if(randomNumber1 > 0.5) {
     targetStroke = "black"; // yes stroke
+    oppositeStroke = "none";
   } else {
     targetStroke = "none"; // no stroke
+    oppositeStroke = "black";
   }
 
   //target size
   if(randomNumber2 > 0.5) {
     targetSize =15; // target is in normal orientation
+    oppositeSize = 25;
   } else {
     targetSize =25; // target is 45 degree rotated
+    oppositeSize = 15;
   }
-
+  
 
 /*   //TargetOrientation
   if(randomNumber2 > 0.5) {
@@ -190,20 +192,80 @@ var displayShapes = function() {
   
   var objectsAppearance = [];
   
-    //if VV= VV1 Target size
-    for (var i = 0; i < objectCount-1; i++) {
-      if(targetStroke == "none") {
-        objectsAppearance.push({
-          stroke: "black",
-          size: targetSize
-        });
-      } else {
-        objectsAppearance.push({
-          stroke: "none",
-          size: targetSize
-        });
+    //if VV= VV1 Target Stroke
+
+    if (visualVariable=='VV1')
+    {
+      for (var i = 0; i < objectCount-1; i++) {
+        if(targetStroke == "none") {
+          objectsAppearance.push({
+            stroke: "black",
+            size: targetSize
+          });
+        } else {
+          objectsAppearance.push({
+            stroke: "none",
+            size: targetSize
+          });
+        }
       }
     }
+
+      
+    //if VV = VV2 Target Stroke, VVindex? or VV
+
+    if (visualVariable=='VV2')
+    {
+      for (var i = 0; i < objectCount-1; i++) {
+
+        console.log("i : " )
+        if(targetSize == "15") {
+          objectsAppearance.push({
+            size : 25,
+            stroke: targetStroke
+            
+          });
+        } else {
+          objectsAppearance.push({
+            size : 15,
+            stroke: targetStroke
+          });
+        }
+      }
+    }
+
+
+    if (visualVariable=='VV1VV2')
+    {
+
+      for (var i = 1; i < objectCount; i++) {
+
+        if (i%3==0)
+        {
+          objectsAppearance.push ({
+            size : targetSize,
+            stroke: oppositeStroke
+          })
+        }
+
+        else if(i%3 ==1)
+        {
+          objectsAppearance.push({
+            size : oppositeSize,
+            stroke: targetStroke
+        })
+       }
+        else 
+        {
+          objectsAppearance.push({
+            size : oppositeSize,
+            stroke: oppositeStroke
+        })
+      }
+    }
+  }
+    
+
 
 
 /*   //if VV= VV1 Target stroke
@@ -220,6 +282,7 @@ var displayShapes = function() {
       });
     }
   } */
+
 
 /*   //if VV= VV2 Target Orientation
   for (var i = 0; i < objectCount-1; i++) {
@@ -265,7 +328,9 @@ var displayShapes = function() {
       .attr("transform", objectsAppearance[i].targetOrientation)
       .attr("fill", "white");//just in case
       } */
-      
+
+
+   //Stroke- Size   
       group.append("circle")
       //x,y if the svg shape is rect
       //if rect, coordinates= 150, x,y-90
@@ -280,6 +345,8 @@ var displayShapes = function() {
       console.log(i+ '- stroke: ' + objectsAppearance[i].stroke);
       //console.log( 'transform: ' + objectsAppearance[i].orientation);
       console.log( 'gridcoords: ' + gridCoords[i].x+' , '+ gridCoords[i].y );
+
+      
 
   }
 
@@ -317,7 +384,7 @@ var displayPlaceholders = function() {
     placeholder.on("click",
         function() {
             d3.select("#placeholders").remove();
-            displayInstructions();
+            nextTrial();
         }
       );
 
@@ -336,9 +403,6 @@ var keyListener = function(event) {
     d3.select("#shapes").remove();
     displayPlaceholders();
   }
-
-
-
 
 
 }
