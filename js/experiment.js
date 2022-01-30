@@ -34,6 +34,8 @@ var ctx = {
     touchstone == 1 ?
     [["Participant","Practice","Block","Trial","VV","OC","visualSearchTime","ErrorCount"]] :
     [["DesignName","ParticipantID","TrialID","Block1","Trial","VV","OC","visualSearchTime","ErrorCount"]]
+
+    
 };
 
 /****************************************/
@@ -107,6 +109,7 @@ var startExperiment = function(event) {
 
 var nextTrial = function() {
   ctx.cpt++;
+  ctx.trials[ctx.cpt]["ErrorCount"] = 0;
   displayInstructions();
 }
 
@@ -136,8 +139,12 @@ var displayInstructions = function() {
 
 }
 
+var targetInt;
+
 var displayShapes = function() {
   ctx.state = state.SHAPES;
+  
+
 
   var visualVariable = ctx.trials[ctx.cpt]["VV"];
   var oc = ctx.trials[ctx.cpt]["OC"];
@@ -180,19 +187,14 @@ var displayShapes = function() {
   }
   
 
-/*   //TargetOrientation
-  if(randomNumber2 > 0.5) {
-    targetOrientation = "rotate(90)"; // target is in normal orientation
-  } else {
-    targetOrientation = "rotate(45)"; // target is 45 degree rotated
-  } */
-
   // 2. Set the visual appearance of all other objects now that the target appearance is decided
   // Here, we implement the case VV = "Size" so all other objects are large (resp. small) if target is small (resp. large) but have the same color as target.
   
+
+
   var objectsAppearance = [];
   
-    //if VV= VV1 Target Stroke
+    //blocks
 
     if (visualVariable=='VV1')
     {
@@ -212,7 +214,7 @@ var displayShapes = function() {
     }
 
       
-    //if VV = VV2 Target Stroke, VVindex? or VV
+
 
     if (visualVariable=='VV2')
     {
@@ -267,46 +269,11 @@ var displayShapes = function() {
     
 
 
-
-/*   //if VV= VV1 Target stroke
-  for (var i = 0; i < objectCount-1; i++) {
-    if(targetStroke == "none") {
-      objectsAppearance.push({
-        stroke: "black",
-        orientation: targetOrientation
-      });
-    } else {
-      objectsAppearance.push({
-        stroke: "none",
-        orientation: targetOrientation
-      });
-    }
-  } */
-
-
-/*   //if VV= VV2 Target Orientation
-  for (var i = 0; i < objectCount-1; i++) {
-    if(targetOrientation== "none") {
-      objectsAppearance.push({
-        stroke: targetStroke,
-        orientation: "rotate(45)"
-      });
-    } else {
-      objectsAppearance.push({
-        stroke: targetStroke,
-        orientation: "none"
-      });
-    }
-  } */
-  
-  //if VV1 VV2 Target Orientation and target orientation is different
-
-
-
   // 3. Shuffle the list of objects (useful when there are variations regarding both visual variable) and add the target at a specific index
   shuffle(objectsAppearance);
   // draw a random index for the target
   ctx.targetIndex = Math.floor(Math.random()*objectCount);
+  targetInt = ctx.targetIndex;
   // and insert it at this specific index
   objectsAppearance.splice(ctx.targetIndex, 0, {stroke: targetStroke, size : targetSize});
 
@@ -317,17 +284,6 @@ var displayShapes = function() {
   // display all objects by adding actual SVG shapes
   for (var i = 0; i < objectCount; i++) {
 
-/*       if (i == targetIndex)
-      {
-      group.append("rect")
-      .attr("cx", gridCoords[i].x)
-      .attr("cy", gridCoords[i].y)
-      .attr("width", 56)
-      .attr("height", 56)
-      .attr("stroke", objectsAppearance[i].targetStroke)
-      .attr("transform", objectsAppearance[i].targetOrientation)
-      .attr("fill", "white");//just in case
-      } */
 
 
    //Stroke- Size   
@@ -358,6 +314,8 @@ var displayPlaceholders = function() {
   var oc = ctx.trials[ctx.cpt]["OC"];
   var objectCount = 0;
 
+  
+
   if(oc === "Small") {
     objectCount = 9;
   } else if(oc === "Medium") {
@@ -380,28 +338,84 @@ var displayPlaceholders = function() {
         .attr("height", 56)
         .attr("fill", "gray");
 
-
-    placeholder.on("click",
-        function() {
-            d3.select("#placeholders").remove();
-            nextTrial();
+        if (i==ctx.targetIndex)
+        {
+          placeholder.on("click",
+          function() {              
+              d3.select("#placeholders").remove();
+              nextTrial();
+          }
+        );
         }
-      );
+
+        else{
+          placeholder.on("click",
+          function() {
+            d3.select("#placeholders").remove();
+            ctx.trials[ctx.cpt]["ErrorCount"]+=1;
+            displayShapes();
+            startTimer = Date.now();
+          }
+        );
+
+          
+        }
+
+/*     placeholder.on("click",
+        function() {
+            console.log("holderindex : "+ holderIndex[i]);
+            console.log("ctx.targetIndex : "+ ctx.targetIndex);
+            
+            d3.select("#placeholders").remove();
+
+            if (holderIndex[i]== ctx.targetIndex)
+              nextTrial();
+
+            else {
+              ctx.trials[ctx.cpt]["ErrorCount"]+=1;
+              displayShapes();
+              startTimer = Date.now();
+
+              console.log("ErrorCount: " + ctx.trials[ctx.cpt]["ErrorCount"]);
+
+            }
+            
+        }
+      ); */
 
   }
 }
 
+var startTimer;
+var endTimer;
+var resultTimer;
+
 var keyListener = function(event) {
   event.preventDefault();
 
+  var searchTime;
+  //START
   if(ctx.state == state.INSTRUCTIONS && event.code == "Enter") {
     d3.select("#instructions").remove();
     displayShapes();
+    startTimer = Date.now();
+    console.log("Start "+startTimer);
   }
-
+  //END
   if(ctx.state == state.SHAPES && event.code == "Space") {
     d3.select("#shapes").remove();
     displayPlaceholders();
+    endTimer = Date.now();
+    console.log("End "+endTimer);
+    
+    resultTimer =endTimer-startTimer;
+    console.log("ALL Time "+ resultTimer);
+
+    
+    console.log(ctx);
+    ctx.loggedTrials.push(
+      [ctx.trials[ctx.cpt]["Participant"], ctx.trials[ctx.cpt]["Practice"],ctx.trials[ctx.cpt]["Block"],ctx.trials[ctx.cpt]["Trial"], ctx.trials[ctx.cpt]["VV"], ctx.trials[ctx.cpt]["OC"],resultTimer,ctx.trials[ctx.cpt]["ErrorCount"]]
+      )
   }
 
 
