@@ -154,12 +154,10 @@ var displayInstructions = function() {
 var targetInt;
 
 var displayShapes = function() {
-  ctx.state = state.SHAPES;
-  
-
-
+  ctx.state = state.SHAPES; 
   var visualVariable = ctx.trials[ctx.cpt]["VV"];
   var oc = ctx.trials[ctx.cpt]["OC"];
+  //set the Object Counts in three levels
   if(oc === "Small") {
     objectCount = 9;
   } else if(oc === "Medium") {
@@ -167,87 +165,86 @@ var displayShapes = function() {
   } else {
     objectCount = 49;
   }
-  console.log(ctx.cpt+":"+ "display shapes for condition "+oc+","+visualVariable);
+  console.log("display shapes for condition "+oc+","+visualVariable);
+
+
 
   var svgElement = d3.select("svg");
   var group = svgElement.append("g")
   .attr("id", "shapes")
   .attr("transform", "translate(100,100)");
+  console.log("Here is group", group);
+  var randomNum = Math.random();
+  var randomNum2 = Math.random();
+  var objectsAppearance = [];
 
-  // 1. Decide on the visual appearance of the target
-  // In my example, it means deciding on its size (large or small) and its color (light or dark)
-  var randomNumber1 = Math.random();
-  var randomNumber2 = Math.random();
-  let targetStroke, targetOrientation, targetSize;
+  var targetOutline, targetShape, targetStroke, oppositeShape, oppositeStroke;
 
-  //targetStroke
-  if(randomNumber1 > 0.5) {
-    targetStroke = "black"; // yes stroke
+  if (randomNum2 > 0.5) {
+    targetOutline = "black";
     oppositeStroke = "none";
   } else {
-    targetStroke = "none"; // no stroke
+    targetOutline = "none";
     oppositeStroke = "black";
   }
 
-  //target size
-  if(randomNumber2 > 0.5) {
-    targetSize =15; // target is in normal orientation
-    oppositeSize = 25;
+  if (randomNum > 0.5) {
+    targetShape = "rect";
+    oppositeShape="polygon"
   } else {
-    targetSize =25; // target is 45 degree rotated
-    oppositeSize = 15;
+    targetShape = "polygon";
+    oppositeShape = "rect";
   }
-  
+  //Didn't use
+  if (Math.random() > 0.5) {
+    targetStroke = "black";
+  } else {
+    targetStroke = "none";
+  }
 
-  // 2. Set the visual appearance of all other objects now that the target appearance is decided
-  // Here, we implement the case VV = "Size" so all other objects are large (resp. small) if target is small (resp. large) but have the same color as target.
-  
-
-
-  var objectsAppearance = [];
-  
-    //blocks
-
-    if (visualVariable=='VV1')
-    {
-      for (var i = 0; i < objectCount-1; i++) {
-        if(targetStroke == "none") {
-          objectsAppearance.push({
-            stroke: "black",
-            size: targetSize
-          });
-        } else {
-          objectsAppearance.push({
-            stroke: "none",
-            size: targetSize
-          });
-        }
+  console.log("The targetStroke", targetOutline);
+  console.log("The targetShape", targetShape);
+ 
+  if (visualVariable == 'VV1') {
+    for (var i = 0; i < objectCount - 1; i++) {
+      if (targetShape == "polygon") {
+        objectsAppearance.push({
+          color: "#5cceee",
+          stroke: targetOutline,
+          shape: "rect"
+        });
+      } else {
+        objectsAppearance.push({
+          color: "#5cceee",
+          stroke: targetOutline,
+          shape: "polygon"
+        });
       }
     }
-
-      
-
-
+  }
+    
+    
     if (visualVariable=='VV2')
     {
       for (var i = 0; i < objectCount-1; i++) {
 
         console.log("i : " )
-        if(targetSize == "15") {
+        if(targetOutline == "black") {
           objectsAppearance.push({
-            size : 25,
-            stroke: targetStroke
+            color: "#5cceee",
+            stroke: "none",
+            shape: targetShape
             
           });
         } else {
           objectsAppearance.push({
-            size : 15,
-            stroke: targetStroke
+            color: "#5cceee",
+            stroke: "black",
+            shape: targetShape
           });
         }
       }
     }
-
 
     if (visualVariable=='VV1VV2')
     {
@@ -257,68 +254,65 @@ var displayShapes = function() {
         if (i%3==0)
         {
           objectsAppearance.push ({
-            size : targetSize,
-            stroke: oppositeStroke
+            color: "#5cceee",
+            stroke: oppositeStroke,
+            shape: targetShape
           })
         }
 
         else if(i%3 ==1)
         {
           objectsAppearance.push({
-            size : oppositeSize,
-            stroke: targetStroke
+            color: "#5cceee",
+            stroke: targetOutline,
+            shape: oppositeShape
         })
        }
         else 
         {
           objectsAppearance.push({
-            size : oppositeSize,
-            stroke: oppositeStroke
+            color: "#5cceee",
+            stroke: oppositeStroke,
+            shape: oppositeShape
         })
       }
     }
   }
     
 
+ 
 
-  // 3. Shuffle the list of objects (useful when there are variations regarding both visual variable) and add the target at a specific index
+  // console.log("This is objectappearance", objectAppearance);
   shuffle(objectsAppearance);
-  // draw a random index for the target
-  ctx.targetIndex = Math.floor(Math.random()*objectCount);
-  targetInt = ctx.targetIndex;
-  // and insert it at this specific index
-  objectsAppearance.splice(ctx.targetIndex, 0, {stroke: targetStroke, size : targetSize});
-
-  // 4. We create actual SVG shapes and lay them out as a grid
-  // compute coordinates for laying out objects as a grid
+  //console.log("This is objectappearance after shuffle", objectAppearance);
+  
+  ctx.targetIndex = Math.floor(Math.random() * objectCount);
+  objectsAppearance.splice(ctx.targetIndex, 0, { color: "#5cceee", stroke: targetOutline, shape:targetShape});
+  
+  console.log("Here is ctx.targetIndex", ctx.targetIndex);
   var gridCoords = gridCoordinates(objectCount, 60);
-
-  // display all objects by adding actual SVG shapes
-  for (var i = 0; i < objectCount; i++) {
-
-
-
-   //Stroke- Size   
-      group.append("circle")
-      //x,y if the svg shape is rect
-      //if rect, coordinates= 150, x,y-90
-      .attr("cx", gridCoords[i].x-28)
-      .attr("cy", gridCoords[i].y-28)
-      .attr("fill", "lightgray")
-      //.attr("width", 56)
-      //.attr("height", 56)
-      .attr("stroke", objectsAppearance[i].stroke)
-      .attr("r", objectsAppearance[i].size)
-      
-      console.log(i+ '- stroke: ' + objectsAppearance[i].stroke);
-      //console.log( 'transform: ' + objectsAppearance[i].orientation);
-      console.log( 'gridcoords: ' + gridCoords[i].x+' , '+ gridCoords[i].y );
-
-      
-
+  for (var i = 0; i < objectCount; i++){
+    if(objectsAppearance[i].shape === "rect") {
+        group.append("rect")
+          .attr("x", gridCoords[i].x)
+          .attr("y", gridCoords[i].y)
+          .attr("width", 56)
+          .attr("height", 56)
+          .attr("fill", objectsAppearance[i].color)
+          .attr("stroke", objectsAppearance[i].stroke);
+    } else {
+      var points = [gridCoords[i].x, gridCoords[i].y, gridCoords[i].x + 56, gridCoords[i].y + 56, gridCoords[i].x + 56, gridCoords[i].y];
+      group.append("polygon")
+        .attr("points", points)
+        .attr("fill", objectsAppearance[i].color)
+        .attr("stroke", objectsAppearance[i].stroke);
+    }
+    
   }
 
-}
+  }
+  
+
 
 var displayPlaceholders = function() {
   ctx.state = state.PLACEHOLDERS;
@@ -344,8 +338,8 @@ var displayPlaceholders = function() {
   var gridCoords = gridCoordinates(objectCount, 60);
   for (var i = 0; i < objectCount; i++) {
     var placeholder = group.append("rect")
-        .attr("x", gridCoords[i].x-28)
-        .attr("y", gridCoords[i].y-28)
+        .attr("x", gridCoords[i].x)
+        .attr("y", gridCoords[i].y)
         .attr("width", 56)
         .attr("height", 56)
         .attr("fill", "gray");
